@@ -1,6 +1,7 @@
 import smtplib
 import ssl
 import json
+import os
 
 def handler(request):
     if request.method != "POST":
@@ -12,12 +13,9 @@ def handler(request):
     email = data.get("email")
     message = data.get("message")
 
-    # Email tujuan (milik kamu)
-    RECEIVER = "emailkamu@gmail.com"
-
-    # Email pengirim (akun Gmail)
-    SENDER = "emailkamu@gmail.com"
-    PASSWORD = "YOUR_APP_PASSWORD"  # pakai "App Password" Gmail
+    SENDER = os.getenv("SENDER_EMAIL")
+    PASSWORD = os.getenv("SENDER_PASSWORD")
+    RECEIVER = os.getenv("RECEIVER_EMAIL")
 
     email_message = f"""
     Subject: New Contact Form Message
@@ -36,11 +34,11 @@ def handler(request):
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"message": "Message sent successfully!"})
+            "body": json.dumps({"message": "Message sent!"})
         }
 
     except Exception as e:
         return {
             "statusCode": 500,
-            "body": json.dumps({"message": f"Error: {str(e)}"})
+            "body": json.dumps({"message": f"SMTP Error: {str(e)}"})
         }
