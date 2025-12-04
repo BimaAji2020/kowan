@@ -1,4 +1,6 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -8,34 +10,25 @@ export default async function handler(req, res) {
   const { name, email, message } = req.body;
 
   if (!name || !email || !message) {
-    return res.status(400).json({ message: "Semua field harus diisi." });
+    return res.status(400).json({ message: "Semua field wajib diisi." });
   }
 
-  // Setup Nodemailer Gmail (gunakan App Password Gmail)
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.MAIL_USER,
-      pass: process.env.MAIL_PASS
-    }
-  });
-
   try {
-    await transporter.sendMail({
-      from: `"Contact Form" <${process.env.MAIL_USER}>`,
-      to: process.env.MAIL_USER,
-      subject: `Pesan Baru dari: ${name}`,
+    await resend.emails.send({
+      from: "Web Contact <onboarding@resend.dev>",
+      to: process.env.MAIL_TO,
+      subject: `Pesan baru dari ${name}`,
       html: `
-        <b>Nama:</b> ${name}<br>
-        <b>Email:</b> ${email}<br>
-        <b>Pesan:</b><br>${message}
-      `
+        <h3>Pesan Baru Dari Form Website</h3>
+        <p><b>Nama:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Pesan:</b><br>${message}</p>
+      `,
     });
 
     return res.status(200).json({ message: "Pesan berhasil dikirim!" });
-
   } catch (error) {
-    console.error("Mail error:", error);
+    console.error("Error:", error);
     return res.status(500).json({ message: "Gagal mengirim pesan." });
   }
 }
